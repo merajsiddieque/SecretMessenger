@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "633244634085",
+    "project_id": "secretmessenger432",
+    "storage_bucket": "secretmessenger432.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633244634085:android:a4dedf4bcb5b63ea1fbd0c",
+        "android_client_info": {
+          "package_name": "com.app.secretmessenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQOfbRgW85IUCgQwLUJMisfgnRNqU113M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
