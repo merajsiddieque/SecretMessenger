@@ -15,23 +15,27 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class UsersHome : AppCompatActivity() {
+
     private lateinit var adapter: UsersAdapter
     private lateinit var userList: ArrayList<Users>
     private lateinit var selectedUsers: ArrayList<Users>
     private val db = FirebaseFirestore.getInstance()
+    private var currentUsernameGlobal: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_users_home)
 
+        // Initialize views
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        val btnSearch = findViewById<ImageButton>(R.id.btnSearch)
-        val btnAdd = findViewById<ImageButton>(R.id.imgbtnAdd)
-        val etSearch = findViewById<EditText>(R.id.etSearch)
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewUsers)
+        val btnSearch: ImageButton = findViewById(R.id.btnSearch)
+        val btnAdd: ImageButton = findViewById(R.id.imgbtnAdd)
+        val etSearch: EditText = findViewById(R.id.etSearch)
+        val recyclerView: RecyclerView = findViewById(R.id.recyclerViewUsers)
 
+        // Set up RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this)
         userList = ArrayList()
         selectedUsers = ArrayList()
@@ -55,51 +59,29 @@ class UsersHome : AppCompatActivity() {
         )
         recyclerView.adapter = adapter
 
-        showFriends()
+        // Fetch and display friends
+        fetchCurrentUsernameAndShowFriends()
 
+        // Add button click listener
         btnAdd.setOnClickListener {
             startActivity(Intent(this, AddUsers::class.java))
         }
 
+        // Search button click listener
         btnSearch.setOnClickListener {
             val query = etSearch.text.toString().trim()
             if (query.isEmpty()) {
-                showFriends()
+                fetchCurrentUsernameAndShowFriends() // Show all friends if search query is empty
             } else {
-                searchUsers(query)
+                searchUsers(query) // Search for users
             }
         }
     }
 
-    private fun searchUsers(query: String) {
-        db.collection("Users")
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                userList.clear()
-                for (document in querySnapshot.documents) {
-                    val documentId = document.id
-                    val parts = documentId.split("-")
-                    if (parts.size > 1) {
-                        val usernameFromDoc = parts[0]
-                        if (usernameFromDoc.startsWith(query, ignoreCase = true)) {
-                            val profilePicBase64 = document.getString("profilePic") ?: ""
-                            val user = Users(
-                                profilePicBase64 = profilePicBase64,
-                                name = document.getString("username") ?: "",
-                                field = document.getString("fullName") ?: ""
-                            )
-                            userList.add(user)
-                        }
-                    }
-                }
-                adapter.notifyDataSetChanged()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(this, "Error fetching users: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    private fun showFriends() {
+    /**
+     * Fetches the current username and then displays friends where `isFriend` is `"True"`.
+     */
+    private fun fetchCurrentUsernameAndShowFriends() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         val email = currentUser?.email
 
@@ -108,71 +90,94 @@ class UsersHome : AppCompatActivity() {
             return
         }
 
+        // Fetch current username
         db.collection("Users")
             .get()
             .addOnSuccessListener { usersSnapshot ->
-                var currentUsername = ""
                 for (document in usersSnapshot.documents) {
                     if (document.id.endsWith("-$email")) {
-                        currentUsername = document.id.split("-")[0]
+                        currentUsernameGlobal = document.id.split("-")[0]
                         break
                     }
                 }
-                if (currentUsername.isEmpty()) {
+                if (currentUsernameGlobal.isEmpty()) {
                     Toast.makeText(this, "Current username not found.", Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
 
-                db.collection("Friends")
-                    .get()
-                    .addOnSuccessListener { friendsSnapshot ->
-                        val friendNames = ArrayList<String>()
-                        for (friendDoc in friendsSnapshot.documents) {
-                            if (friendDoc.id.startsWith("$currentUsername-")) {
-                                val parts = friendDoc.id.split("-")
-                                if (parts.size >= 2) {
-                                    val friendName = parts[1]
-                                    friendNames.add(friendName)
-                                }
-                            }
-                        }
-
-                        if (friendNames.isEmpty()) {
-                            Toast.makeText(this, "No friends found.", Toast.LENGTH_SHORT).show()
-                            userList.clear()
-                            adapter.notifyDataSetChanged()
-                        } else {
-                            db.collection("Users")
-                                .whereIn("username", friendNames)
-                                .get()
-                                .addOnSuccessListener { friendDetailsSnapshot ->
-                                    userList.clear()
-                                    for (userDoc in friendDetailsSnapshot.documents) {
-                                        val username = userDoc.getString("username") ?: ""
-                                        if (friendNames.contains(username)) {
-                                            val profilePicBase64 = userDoc.getString("profilePic") ?: ""
-                                            val friendUser = Users(
-                                                profilePicBase64 = profilePicBase64,
-                                                name = username,
-                                                field = userDoc.getString("fullName") ?: ""
-                                            )
-                                            userList.add(friendUser)
-                                        }
-                                    }
-                                    adapter.notifyDataSetChanged()
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(this, "Error fetching friend details: ${e.message}", Toast.LENGTH_SHORT).show()
-                                }
-                        }
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(this, "Error fetching friends list: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
+                // Fetch and display friends
+                showFriends()
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Error fetching current user data: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    /**
+     * Fetches and displays friends where `isFriend` is `"True"`.
+     */
+    private fun showFriends() {
+        db.collection("Friends")
+            .get()
+            .addOnSuccessListener { friendsSnapshot ->
+                val friendUsernames = ArrayList<String>()
+                for (friendDoc in friendsSnapshot.documents) {
+                    // Check if the document ID matches the current user's conversation ID
+                    if (friendDoc.id.startsWith("$currentUsernameGlobal-")) {
+                        val isFriend = friendDoc.getString("isFriend")
+                        if (isFriend == "True") {
+                            val friendUsername = friendDoc.id.split("-")[1]
+                            friendUsernames.add(friendUsername)
+                        }
+                    }
+                }
+
+                if (friendUsernames.isEmpty()) {
+                    Toast.makeText(this, "No friends found.", Toast.LENGTH_SHORT).show()
+                    userList.clear()
+                    adapter.notifyDataSetChanged()
+                } else {
+                    // Fetch friend details
+                    db.collection("Users")
+                        .whereIn("username", friendUsernames)
+                        .get()
+                        .addOnSuccessListener { friendDetailsSnapshot ->
+                            userList.clear()
+                            for (userDoc in friendDetailsSnapshot.documents) {
+                                val username = userDoc.getString("username") ?: ""
+                                if (friendUsernames.contains(username)) {
+                                    val profilePicBase64 = userDoc.getString("profilePic") ?: ""
+                                    val friendUser = Users(
+                                        profilePicBase64 = profilePicBase64,
+                                        name = username,
+                                        field = userDoc.getString("fullName") ?: ""
+                                    )
+                                    userList.add(friendUser)
+                                }
+                            }
+                            adapter.notifyDataSetChanged()
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Error fetching friend details: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error fetching friends list: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    /**
+     * Searches for users based on the query.
+     * Filters the current `userList` instead of fetching from Firestore again.
+     */
+    private fun searchUsers(query: String) {
+        val filteredList = userList.filter { user ->
+            user.name.startsWith(query, ignoreCase = true)
+        }
+        userList.clear()
+        userList.addAll(filteredList)
+        adapter.notifyDataSetChanged()
     }
 
     override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
@@ -184,37 +189,21 @@ class UsersHome : AppCompatActivity() {
         return when (item.itemId) {
             R.id.menu_delete -> {
                 if (selectedUsers.isNotEmpty()) {
-                    val currentUser = FirebaseAuth.getInstance().currentUser
-                    val email = currentUser?.email
-                    if (!email.isNullOrEmpty()) {
-                        db.collection("Users")
-                            .get()
-                            .addOnSuccessListener { usersSnapshot ->
-                                var currentUsername = ""
-                                for (document in usersSnapshot.documents) {
-                                    if (document.id.endsWith("-$email")) {
-                                        currentUsername = document.id.split("-")[0]
-                                        break
-                                    }
-                                }
-                                if (currentUsername.isNotEmpty()) {
-                                    for (user in selectedUsers) {
-                                        val friendDocId = "$currentUsername-${user.name}"
-                                        db.collection("Friends").document(friendDocId)
-                                            .set(emptyMap<String, Any>())
-                                            .addOnSuccessListener {
-                                                Toast.makeText(this, "Friend added: ${user.name}", Toast.LENGTH_SHORT).show()
-                                            }
-                                            .addOnFailureListener { e ->
-                                                Toast.makeText(this, "Failed to add friend: ${e.message}", Toast.LENGTH_SHORT).show()
-                                            }
-                                    }
-                                }
+                    for (user in selectedUsers) {
+                        val conversationId = "$currentUsernameGlobal-${user.name}"
+                        db.collection("Friends").document(conversationId)
+                            .delete()
+                            .addOnSuccessListener {
+                                // Remove the user from the list and refresh the RecyclerView
+                                userList.remove(user)
+                                adapter.notifyDataSetChanged()
+                                Toast.makeText(this, "Friend removed: ${user.name}", Toast.LENGTH_SHORT).show()
                             }
                             .addOnFailureListener { e ->
-                                Toast.makeText(this, "Error retrieving user data: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, "Failed to remove friend: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
                     }
+                    selectedUsers.clear() // Clear the selected users list
                 } else {
                     Toast.makeText(this, "No users selected.", Toast.LENGTH_SHORT).show()
                 }
