@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@drawable/rounded_item_background">
+
+    <!-- 🔹 Profile Image -->
+    <ImageView
+        android:id="@+id/profileImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_profile_placeholder"
+        android:background="@drawable/circle_background"
+        android:contentDescription="profile_picture"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:elevation="4dp"
+        android:layout_marginEnd="12dp" />
+
+    <!-- 🔹 User's Name -->
+    <TextView
+        android:id="@+id/userNameTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="User Name"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        app:layout_constraintStart_toEndOf="@id/profileImage"
+        app:layout_constraintTop_toTopOf="@id/profileImage"
+        app:layout_constraintEnd_toStartOf="@id/selectCheckBox"
+        android:paddingStart="12dp" />
+
+    <!-- 🔹 User's Field (Email/Status) -->
+    <TextView
+        android:id="@+id/userFieldTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="user@example.com"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toStartOf="@id/userNameTextView"
+        app:layout_constraintTop_toBottomOf="@id/userNameTextView"
+        app:layout_constraintEnd_toStartOf="@id/selectCheckBox" />
+
+    <!-- 🔹 Checkbox for User Selection -->
+    <CheckBox
+        android:id="@+id/selectCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="8dp"
+        android:buttonTint="@android:color/darker_gray"
+        android:layout_marginEnd="16dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

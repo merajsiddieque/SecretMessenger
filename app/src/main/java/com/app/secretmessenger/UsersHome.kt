@@ -58,7 +58,7 @@ class UsersHome : AppCompatActivity() {
         showFriends()
 
         btnAdd.setOnClickListener {
-            startActivity(Intent(this, Search::class.java))
+            startActivity(Intent(this, AddUsers::class.java))
         }
 
         btnSearch.setOnClickListener {
