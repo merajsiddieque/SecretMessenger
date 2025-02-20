@@ -14,7 +14,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -61,6 +61,7 @@ dependencies {
     implementation ("com.google.firebase:firebase-auth-ktx:22.3.1")
     implementation ("com.google.firebase:firebase-firestore-ktx:24.11.1")
     implementation ("com.google.android.material:material:1.6.0")
+//    implementation ("com.github.yalantis:ucrop:2.2.8")
 
     // RecyclerView & Glide for Image Loading
     implementation("androidx.recyclerview:recyclerview:1.3.2")

@@ -7,22 +7,29 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        private const val REQUEST_CODE_STORAGE_PERMISSION = 100
-    }
+    private lateinit var auth: FirebaseAuth
 
-    private lateinit var auth: FirebaseAuth // Firebase Authentication instance
+    // ActivityResultLauncher for requesting multiple permissions
+    private val requestPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.all { it.value }) {
+            Snackbar.make(findViewById(android.R.id.content), "Storage permissions granted", Snackbar.LENGTH_SHORT).show()
+        } else {
+            Snackbar.make(findViewById(android.R.id.content), "Storage permissions are required for this app.", Snackbar.LENGTH_LONG).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,13 +58,13 @@ class MainActivity : AppCompatActivity() {
 
             // Check if fields are empty
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Email and Password are required", Toast.LENGTH_SHORT).show()
+                Snackbar.make(it, "Email and Password are required", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             // Validate email format
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Enter a valid email", Toast.LENGTH_SHORT).show()
+                Snackbar.make(it, "Enter a valid email", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -68,30 +75,18 @@ class MainActivity : AppCompatActivity() {
                         val user: FirebaseUser? = auth.currentUser
                         if (user != null) {
                             if (user.isEmailVerified) {
-                                Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
+                                Snackbar.make(it, "Login Successful!", Snackbar.LENGTH_SHORT).show()
                                 startActivity(Intent(this, UsersHome::class.java))
                                 finish()
                             } else {
-                                Toast.makeText(
-                                    this,
-                                    "Please verify your email before logging in.",
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                Snackbar.make(it, "Please verify your email before logging in.", Snackbar.LENGTH_LONG).show()
                                 auth.signOut() // Prevent login if not verified
                             }
                         } else {
-                            Toast.makeText(
-                                this,
-                                "User doesn't exist. Please sign up.",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Snackbar.make(it, "User doesn't exist. Please sign up.", Snackbar.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(
-                            this,
-                            "Login failed: ${task.exception?.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Snackbar.make(it, "Login failed: ${task.exception?.message}", Snackbar.LENGTH_SHORT).show()
                     }
                 }
         }
@@ -142,49 +137,20 @@ class MainActivity : AppCompatActivity() {
             .setMessage("This app requires storage access to function properly. Please grant storage permissions.")
             .setPositiveButton("Allow") { dialog, _ ->
                 // Launch the system permission dialog when "Allow" is clicked.
-                ActivityCompat.requestPermissions(
-                    this,
+                requestPermissionsLauncher.launch(
                     arrayOf(
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    ),
-                    REQUEST_CODE_STORAGE_PERMISSION
+                    )
                 )
                 dialog.dismiss()
             }
             .setNegativeButton("Deny") { dialog, _ ->
-                Toast.makeText(
-                    this,
-                    "Storage permissions are required for this app.",
-                    Toast.LENGTH_LONG
-                ).show()
+                Snackbar.make(findViewById(android.R.id.content), "Storage permissions are required for this app.", Snackbar.LENGTH_LONG).show()
                 dialog.dismiss()
                 // Optionally, you can disable features or close the app if permission is critical.
             }
             .create()
             .show()
-    }
-
-    /**
-     * Handle the result of permission requests.
-     */
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_STORAGE_PERMISSION) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                Toast.makeText(this, "Storage permissions granted", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Storage permissions are required for this app.",
-                    Toast.LENGTH_LONG
-                ).show()
-                // Optionally, take further action if permissions are denied.
-            }
-        }
     }
 }

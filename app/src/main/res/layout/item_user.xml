@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:padding="8dp">
 
-    <!-- 🔹 Profile Image -->
+    <!-- Profile Image -->
     <ImageView
         android:id="@+id/ivProfile"
         android:layout_width="50dp"
@@ -19,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- 🔹 User's Name -->
+    <!-- User's Name -->
     <TextView
         android:id="@+id/tvUserName"
         android:layout_width="0dp"
@@ -31,10 +31,10 @@
         android:ellipsize="end"
         app:layout_constraintStart_toEndOf="@id/ivProfile"
         app:layout_constraintTop_toTopOf="@id/ivProfile"
-        app:layout_constraintEnd_toStartOf="@id/checkbox"
+        app:layout_constraintEnd_toEndOf="parent"
         android:paddingStart="12dp" />
 
-    <!-- 🔹 User's Field (Email/Status) -->
+    <!-- User's Field (Email/Status) -->
     <TextView
         android:id="@+id/tvUserField"
         android:layout_width="0dp"
@@ -46,14 +46,6 @@
         android:ellipsize="end"
         app:layout_constraintStart_toStartOf="@id/tvUserName"
         app:layout_constraintTop_toBottomOf="@id/tvUserName"
-        app:layout_constraintEnd_toStartOf="@id/checkbox" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 🔹 Checkbox for User Selection -->
-    <CheckBox
-        android:id="@+id/checkbox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

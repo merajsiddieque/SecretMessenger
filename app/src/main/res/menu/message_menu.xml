@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_block"
+        android:title="Block" />
+    <item
+        android:id="@+id/menu_search"
+        android:title="Search" />
+    <item
+        android:id="@+id/menu_message_settings"
+        android:title="Settings" />
+</menu>

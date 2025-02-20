@@ -37,14 +37,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class Home : AppCompatActivity() {
+class Message : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_CODE_PICK_FILE = 1001
         private const val STORAGE_PERMISSION_CODE = 1002
     }
 
-    private val messagesList = mutableListOf<Message>()
+    private val messagesList = mutableListOf<MessageData>()
     private lateinit var messageAdapter: MessageAdapter
     private val db = FirebaseFirestore.getInstance()
     private var currentUsernameGlobal: String = ""
@@ -52,7 +52,7 @@ class Home : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_home)
+        setContentView(R.layout.activity_message)
 
         if (!hasStoragePermissions()) {
             requestStoragePermissions()
@@ -315,7 +315,7 @@ class Home : AppCompatActivity() {
                                 val time = change.document.getString("time") ?: ""
                                 val timestamp = change.document.getLong("timestamp") ?: 0L
                                 val fileData = change.document.getString("fileData")
-                                val newMessage = Message(username, content, time, timestamp, fileData).apply {
+                                val newMessage = MessageData(username, content, time, timestamp, fileData).apply {
                                     documentId = change.document.id
                                 }
                                 if (!messagesList.contains(newMessage)) {
@@ -331,7 +331,7 @@ class Home : AppCompatActivity() {
         }
     }
 
-    private fun deleteMessage(message: Message) {
+    private fun deleteMessage(message: MessageData) {
         val documentId = message.documentId ?: return
 
         val friendUsername = findViewById<TextView>(R.id.tvUsername).text.toString()
@@ -356,7 +356,7 @@ class Home : AppCompatActivity() {
             }
     }
 
-    private fun downloadAndOpenFile(message: Message) {
+    private fun downloadAndOpenFile(message: MessageData) {
         if (!hasStoragePermissions()) {
             requestStoragePermissions()
             return

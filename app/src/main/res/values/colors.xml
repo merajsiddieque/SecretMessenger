@@ -4,5 +4,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="primaryColor">#6200EE</color> <!-- Replace with your desired color -->
     <color name="backgroundColor">#F5F5F5</color>
+    <color name="light_gray">#858484</color>
 
 </resources>

@@ -9,8 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.app.secretmessenger.adapter.UsersAdapter
-import com.app.secretmessenger.Users
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -42,15 +40,17 @@ class UsersHome : AppCompatActivity() {
 
         adapter = UsersAdapter(
             userList,
-            onUserSelected = { user, isChecked ->
-                if (isChecked) {
-                    selectedUsers.add(user)
-                } else {
+            selectedUsers, // Pass the selectedUsers list
+            onLongPress = { user ->
+                if (selectedUsers.contains(user)) {
                     selectedUsers.remove(user)
+                } else {
+                    selectedUsers.add(user)
                 }
+                adapter.notifyDataSetChanged()
             },
             onItemClick = { clickedUser ->
-                val intent = Intent(this, Home::class.java).apply {
+                val intent = Intent(this, Message::class.java).apply {
                     putExtra("username", clickedUser.name)
                     putExtra("profilePic", clickedUser.profilePicBase64)
                 }
@@ -78,9 +78,6 @@ class UsersHome : AppCompatActivity() {
         }
     }
 
-    /**
-     * Fetches the current username and then displays friends where `isFriend` is `"True"`.
-     */
     private fun fetchCurrentUsernameAndShowFriends() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         val email = currentUser?.email
@@ -90,7 +87,6 @@ class UsersHome : AppCompatActivity() {
             return
         }
 
-        // Fetch current username
         db.collection("Users")
             .get()
             .addOnSuccessListener { usersSnapshot ->
@@ -105,7 +101,6 @@ class UsersHome : AppCompatActivity() {
                     return@addOnSuccessListener
                 }
 
-                // Fetch and display friends
                 showFriends()
             }
             .addOnFailureListener { e ->
@@ -113,16 +108,12 @@ class UsersHome : AppCompatActivity() {
             }
     }
 
-    /**
-     * Fetches and displays friends where `isFriend` is `"True"`.
-     */
     private fun showFriends() {
         db.collection("Friends")
             .get()
             .addOnSuccessListener { friendsSnapshot ->
                 val friendUsernames = ArrayList<String>()
                 for (friendDoc in friendsSnapshot.documents) {
-                    // Check if the document ID matches the current user's conversation ID
                     if (friendDoc.id.startsWith("$currentUsernameGlobal-")) {
                         val isFriend = friendDoc.getString("isFriend")
                         if (isFriend == "True") {
@@ -137,7 +128,6 @@ class UsersHome : AppCompatActivity() {
                     userList.clear()
                     adapter.notifyDataSetChanged()
                 } else {
-                    // Fetch friend details
                     db.collection("Users")
                         .whereIn("username", friendUsernames)
                         .get()
@@ -167,10 +157,6 @@ class UsersHome : AppCompatActivity() {
             }
     }
 
-    /**
-     * Searches for users based on the query.
-     * Filters the current `userList` instead of fetching from Firestore again.
-     */
     private fun searchUsers(query: String) {
         val filteredList = userList.filter { user ->
             user.name.startsWith(query, ignoreCase = true)
@@ -189,13 +175,13 @@ class UsersHome : AppCompatActivity() {
         return when (item.itemId) {
             R.id.menu_delete -> {
                 if (selectedUsers.isNotEmpty()) {
-                    for (user in selectedUsers) {
+                    for (user in selectedUsers.toList()) { // Use toList() to avoid concurrent modification
                         val conversationId = "$currentUsernameGlobal-${user.name}"
                         db.collection("Friends").document(conversationId)
                             .delete()
                             .addOnSuccessListener {
-                                // Remove the user from the list and refresh the RecyclerView
                                 userList.remove(user)
+                                selectedUsers.remove(user)
                                 adapter.notifyDataSetChanged()
                                 Toast.makeText(this, "Friend removed: ${user.name}", Toast.LENGTH_SHORT).show()
                             }
@@ -203,7 +189,6 @@ class UsersHome : AppCompatActivity() {
                                 Toast.makeText(this, "Failed to remove friend: ${e.message}", Toast.LENGTH_SHORT).show()
                             }
                     }
-                    selectedUsers.clear() // Clear the selected users list
                 } else {
                     Toast.makeText(this, "No users selected.", Toast.LENGTH_SHORT).show()
                 }
@@ -225,8 +210,9 @@ class UsersHome : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
     override fun onResume() {
         super.onResume()
-        fetchCurrentUsernameAndShowFriends()  // <-- Add this method to refresh the list
+        fetchCurrentUsernameAndShowFriends()
     }
 }

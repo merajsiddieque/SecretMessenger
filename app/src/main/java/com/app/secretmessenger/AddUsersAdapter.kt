@@ -5,17 +5,14 @@ import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.app.secretmessenger.R
-import com.app.secretmessenger.AddUsersData
 
 class AddUsersAdapter(
     private val userList: List<AddUsersData>,
     private val selectedUsers: MutableList<AddUsersData>,
-    private val onUserSelected: (AddUsersData, Boolean) -> Unit
+    private val onLongPress: (AddUsersData) -> Unit
 ) : RecyclerView.Adapter<AddUsersAdapter.UserViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
@@ -25,7 +22,7 @@ class AddUsersAdapter(
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val user = userList[position]
-        holder.bind(user, selectedUsers.contains(user), onUserSelected)
+        holder.bind(user, selectedUsers.contains(user), onLongPress)
     }
 
     override fun getItemCount(): Int = userList.size
@@ -34,9 +31,8 @@ class AddUsersAdapter(
         private val userNameTextView: TextView = itemView.findViewById(R.id.userNameTextView)
         private val userFieldTextView: TextView = itemView.findViewById(R.id.userFieldTextView)
         private val profileImage: ImageView = itemView.findViewById(R.id.profileImage)
-        private val userCheckBox: CheckBox = itemView.findViewById(R.id.selectCheckBox)
 
-        fun bind(user: AddUsersData, isSelected: Boolean, onUserSelected: (AddUsersData, Boolean) -> Unit) {
+        fun bind(user: AddUsersData, isSelected: Boolean, onLongPress: (AddUsersData) -> Unit) {
             userNameTextView.text = user.name
             userFieldTextView.text = user.field
 
@@ -53,10 +49,15 @@ class AddUsersAdapter(
                 profileImage.setImageResource(R.drawable.ic_profile_placeholder)
             }
 
-            // Set checkbox state
-            userCheckBox.isChecked = isSelected
-            userCheckBox.setOnCheckedChangeListener { _, isChecked ->
-                onUserSelected(user, isChecked)
+            // Set background color based on selection
+            itemView.setBackgroundResource(
+                if (isSelected) R.color.light_gray else android.R.color.transparent
+            )
+
+            // Handle long press to toggle selection
+            itemView.setOnLongClickListener {
+                onLongPress(user)
+                true
             }
         }
     }

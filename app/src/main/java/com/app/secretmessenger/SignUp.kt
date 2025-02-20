@@ -15,6 +15,22 @@ class SignUp : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth  // Firebase Authentication instance
 
+    // List of allowed email domains
+    private val allowedDomains = listOf(
+        "@gmail.com",
+        "@mail.com",
+        "@outlook.com",
+        "@hotmail.com",
+        "@live.com",
+        "@yahoo.com",
+        "@ymail.com",
+        "@icloud.com",
+        "@me.com",
+        "@mac.com",
+        "@protonmail.com",
+        "@zoho.com"
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -45,6 +61,12 @@ class SignUp : AppCompatActivity() {
             // Validate email format
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(this, "Enter a valid email", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Check if email contains one of the allowed domains
+            if (!isEmailDomainValid(email)) {
+                Toast.makeText(this, "Invalid email address. Use a valid Email .", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -101,5 +123,17 @@ class SignUp : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    /**
+     * Check if the email contains one of the allowed domains.
+     */
+    private fun isEmailDomainValid(email: String): Boolean {
+        for (domain in allowedDomains) {
+            if (email.endsWith(domain)) {
+                return true
+            }
+        }
+        return false
     }
 }

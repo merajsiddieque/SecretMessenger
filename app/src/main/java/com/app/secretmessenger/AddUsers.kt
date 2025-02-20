@@ -13,8 +13,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.app.secretmessenger.AddUsersAdapter
-import com.app.secretmessenger.AddUsersData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -44,13 +42,15 @@ class AddUsers : AppCompatActivity() {
         searchIcon = findViewById(R.id.searchIcon)
         recyclerViewResults = findViewById(R.id.recyclerViewResults)
 
-        // Set up RecyclerView
-        adapter = AddUsersAdapter(userList, selectedUsers) { user, isChecked ->
-            if (isChecked) {
-                selectedUsers.add(user)
-            } else {
+        // Set up RecyclerView with long-press selection
+        adapter = AddUsersAdapter(userList, selectedUsers) { user ->
+            // Toggle selection on long press
+            if (selectedUsers.contains(user)) {
                 selectedUsers.remove(user)
+            } else {
+                selectedUsers.add(user)
             }
+            adapter.notifyDataSetChanged() // Update UI to reflect selection
         }
         recyclerViewResults.layoutManager = LinearLayoutManager(this)
         recyclerViewResults.adapter = adapter
@@ -121,12 +121,13 @@ class AddUsers : AppCompatActivity() {
         val filteredList = userList.filter { user ->
             user.name.contains(query, ignoreCase = true) || user.field.contains(query, ignoreCase = true)
         }
-        adapter = AddUsersAdapter(filteredList as ArrayList<AddUsersData>, selectedUsers) { user, isChecked ->
-            if (isChecked) {
-                selectedUsers.add(user)
-            } else {
+        adapter = AddUsersAdapter(filteredList as ArrayList<AddUsersData>, selectedUsers) { user ->
+            if (selectedUsers.contains(user)) {
                 selectedUsers.remove(user)
+            } else {
+                selectedUsers.add(user)
             }
+            adapter.notifyDataSetChanged()
         }
         recyclerViewResults.adapter = adapter
     }

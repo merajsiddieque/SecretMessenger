@@ -1,6 +1,6 @@
 package com.app.secretmessenger
 
-data class Message(
+data class MessageData(
     val username: String,
     val content: String,
     val time: String,

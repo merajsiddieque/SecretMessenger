@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:paddingTop="30dp"
-    tools:context=".MessageData">
+    tools:context=".Message">
 
     <!-- 🔹 Top Bar -->
     <LinearLayout
@@ -46,33 +46,32 @@
             android:textColor="@android:color/black"
             android:textSize="18sp" />
 
-            <ImageButton
-                android:id="@+id/voicecallbtn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="More Options"
-                android:scaleType="center"
-                android:src="@drawable/ic_voice" />
+        <ImageButton
+            android:id="@+id/voicecallbtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Voice Call"
+            android:scaleType="center"
+            android:src="@drawable/ic_voice" />
 
         <ImageButton
-                android:id="@+id/videocallbtn"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="More Options"
-                android:scaleType="center"
-                android:src="@drawable/ic_video" />
+            android:id="@+id/videocallbtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Video Call"
+            android:scaleType="center"
+            android:src="@drawable/ic_video" />
 
         <ImageButton
-                android:id="@+id/btnMoreOptions"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="More Options"
-                android:scaleType="center"
-                android:src="@drawable/ic_more_vert" />
-
+            android:id="@+id/btnMoreOptions"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="More Options"
+            android:scaleType="center"
+            android:src="@drawable/ic_more_vert" />
     </LinearLayout>
 
     <!-- 🔹 Chat Messages List (RecyclerView) -->
@@ -91,7 +90,7 @@
         app:layout_constraintVertical_bias="0.0"
         app:stackFromEnd="true" />
 
-    <!-- 🔹 Input MessageData Layout -->
+    <!-- 🔹 Input Message Layout -->
     <LinearLayout
         android:id="@+id/messageInputLayout"
         android:layout_width="0dp"
@@ -129,7 +128,7 @@
             android:layout_height="48dp"
             android:src="@drawable/ic_attachment"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="addDocs"
+            android:contentDescription="Add Document"
             android:padding="8dp"/>
 
         <ImageButton
