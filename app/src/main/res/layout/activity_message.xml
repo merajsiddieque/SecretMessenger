@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:paddingTop="30dp"
-    tools:context=".Home">
+    tools:context=".MessageData">
 
     <!-- 🔹 Top Bar -->
     <LinearLayout
@@ -46,13 +46,25 @@
             android:textColor="@android:color/black"
             android:textSize="18sp" />
 
-        <!-- Three-dot Menu -->
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:padding="8dp">
-
             <ImageButton
+                android:id="@+id/voicecallbtn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="More Options"
+                android:scaleType="center"
+                android:src="@drawable/ic_voice" />
+
+        <ImageButton
+                android:id="@+id/videocallbtn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="More Options"
+                android:scaleType="center"
+                android:src="@drawable/ic_video" />
+
+        <ImageButton
                 android:id="@+id/btnMoreOptions"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -60,7 +72,7 @@
                 android:contentDescription="More Options"
                 android:scaleType="center"
                 android:src="@drawable/ic_more_vert" />
-        </FrameLayout>
+
     </LinearLayout>
 
     <!-- 🔹 Chat Messages List (RecyclerView) -->
@@ -79,7 +91,7 @@
         app:layout_constraintVertical_bias="0.0"
         app:stackFromEnd="true" />
 
-    <!-- 🔹 Input Message Layout -->
+    <!-- 🔹 Input MessageData Layout -->
     <LinearLayout
         android:id="@+id/messageInputLayout"
         android:layout_width="0dp"
@@ -111,6 +123,15 @@
             android:textSize="16sp" />
 
         <!-- Send Button -->
+        <ImageButton
+            android:id="@+id/docbutton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_attachment"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="addDocs"
+            android:padding="8dp"/>
+
         <ImageButton
             android:id="@+id/btnSend"
             android:layout_width="48dp"
