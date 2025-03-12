@@ -1,5 +1,8 @@
 package com.app.secretmessenger
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Base64
 import android.view.LayoutInflater
@@ -7,8 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 class MessageAdapter(
@@ -26,60 +30,64 @@ class MessageAdapter(
 
         fun bind(message: MessageData) {
             tvUsername.text = message.username
+            tvMessageContent.text = message.content
             tvMessageTime.text = message.time
 
             if (message.fileData != null) {
-                val fileName = message.content.removePrefix("File: ").trim()
-                tvMessageContent.text = message.content
-
-                // Check if it's a PDF file
-                if (fileName.lowercase().endsWith(".pdf")) {
+                try {
+                    val fileBytes = Base64.decode(message.fileData, Base64.DEFAULT)
+                    val bitmap = BitmapFactory.decodeByteArray(fileBytes, 0, fileBytes.size)
+                    ivFilePreview.visibility = View.VISIBLE
+                    ivFilePreview.setImageBitmap(bitmap)
+                } catch (e: Exception) {
                     ivFilePreview.visibility = View.GONE
-                    btnDownload.visibility = View.VISIBLE
-                    btnDownload.setOnClickListener {
-                        onDownloadAndOpen(message)
-                    }
-                } else {
-                    // Try to display as image
-                    btnDownload.visibility = View.GONE
-                    try {
-                        val fileBytes = Base64.decode(message.fileData, Base64.DEFAULT)
-                        val bitmap = BitmapFactory.decodeByteArray(fileBytes, 0, fileBytes.size)
-                        ivFilePreview.visibility = View.VISIBLE
-                        ivFilePreview.setImageBitmap(bitmap)
-                    } catch (e: Exception) {
-                        ivFilePreview.visibility = View.GONE
-                        tvMessageContent.text = "${message.content} (Preview not available)"
-                    }
-                }
-
-                // Long press for document files (excluding PDFs since they have download button)
-                itemView.setOnLongClickListener {
-                    if (message.content.startsWith("File:") && message.fileData != null && !fileName.lowercase().endsWith(".pdf")) {
-                        showFileOptionsDialog(message)
-                    }
-                    true
+                    tvMessageContent.text = "${message.content} (Preview not available)"
                 }
             } else {
-                tvMessageContent.text = message.content
                 ivFilePreview.visibility = View.GONE
-                btnDownload.visibility = View.GONE
-                itemView.setOnLongClickListener(null)
+            }
+
+            // Initially hide the download button; it’s controlled by context menu
+            btnDownload.visibility = View.GONE
+
+            itemView.setOnLongClickListener {
+                showContextMenu(itemView, message)
+                true
             }
         }
 
-        private fun showFileOptionsDialog(message: MessageData) {
-            val options = arrayOf("Download", "Delete")
-            AlertDialog.Builder(itemView.context)
-                .setTitle("File Options")
-                .setItems(options) { _, which ->
-                    when (which) {
-                        0 -> onDownloadAndOpen(message)
-                        1 -> onDelete(message)
+        private fun showContextMenu(view: View, message: MessageData) {
+            val popupMenu = PopupMenu(view.context, view)
+            val menu = popupMenu.menu
+
+            menu.add(0, 1, 0, "Delete")
+            menu.add(0, 2, 1, "Copy")
+            if (message.fileData != null) {
+                menu.add(0, 3, 2, "Download")
+            }
+
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> { // Delete
+                        onDelete(message)
+                        Toast.makeText(view.context, "Message deleted", Toast.LENGTH_SHORT).show()
+                        true
                     }
+                    2 -> { // Copy
+                        val clipboard = view.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Message Content", message.content)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(view.context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                        true
+                    }
+                    3 -> { // Download
+                        onDownloadAndOpen(message)
+                        true
+                    }
+                    else -> false
                 }
-                .setNegativeButton("Cancel", null)
-                .show()
+            }
+            popupMenu.show()
         }
     }
 

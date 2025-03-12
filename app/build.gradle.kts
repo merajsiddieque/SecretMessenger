@@ -61,6 +61,14 @@ dependencies {
     implementation ("com.google.firebase:firebase-auth-ktx:22.3.1")
     implementation ("com.google.firebase:firebase-firestore-ktx:24.11.1")
     implementation ("com.google.android.material:material:1.6.0")
+//    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
+//    implementation ("com.arthenica:mobile-ffmpeg-full:6.0.3")
+
+//    implementation("org.webrtc:google-webrtc:1.0.30000") // Check for the latest version
+//    implementation ("io.socket:socket.io-client:2.0.0")
+
+//    implementation ("live.videosdk:rtc-android-sdk:0.1.34") // Latest version as of now, check for updates
+//    implementation ("com.amitshekhar.android:android-networking:1.0.2") // For API calls
 //    implementation ("com.github.yalantis:ucrop:2.2.8")
 
     // RecyclerView & Glide for Image Loading

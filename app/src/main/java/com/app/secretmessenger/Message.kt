@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
@@ -48,6 +49,7 @@ class Message : AppCompatActivity() {
     private lateinit var messageAdapter: MessageAdapter
     private val db = FirebaseFirestore.getInstance()
     private var currentUsernameGlobal: String = ""
+    private lateinit var recyclerViewMessages: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +70,7 @@ class Message : AppCompatActivity() {
         val docsbtn = findViewById<ImageButton>(R.id.docbutton)
         val messageMoreOptions = findViewById<ImageButton>(R.id.btnMoreOptions)
         val messageInputLayout = findViewById<LinearLayout>(R.id.messageInputLayout)
-        val recyclerViewMessages = findViewById<RecyclerView>(R.id.recyclerViewMessages)
+        recyclerViewMessages = findViewById(R.id.recyclerViewMessages)
 
         tvUsername.text = friendUsername
         if (friendProfilePicBase64.isNotEmpty()) {
@@ -91,6 +93,7 @@ class Message : AppCompatActivity() {
         recyclerViewMessages.layoutManager = LinearLayoutManager(this)
         recyclerViewMessages.adapter = messageAdapter
 
+        // Adjust layout when keyboard is shown
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { _, insets ->
             val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
             messageInputLayout.translationY = -imeHeight.toFloat()
@@ -98,6 +101,7 @@ class Message : AppCompatActivity() {
             insets
         }
 
+        // Scroll to bottom when EditText gains focus
         etMessage.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 recyclerViewMessages.postDelayed({
@@ -118,7 +122,7 @@ class Message : AppCompatActivity() {
         docsbtn.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
+                type = "image/*"
             }
             startActivityForResult(intent, REQUEST_CODE_PICK_FILE)
         }
@@ -137,15 +141,15 @@ class Message : AppCompatActivity() {
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_search -> {
-                    Toast.makeText(this, "Searched Clicked", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Search Clicked", Toast.LENGTH_SHORT).show()
                     true
                 }
                 R.id.menu_block -> {
-                    Toast.makeText(this, "Blocked clicked", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Block Clicked", Toast.LENGTH_SHORT).show()
                     true
                 }
                 R.id.menu_message_settings -> {
-                    Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Settings Clicked", Toast.LENGTH_SHORT).show()
                     true
                 }
                 else -> false
@@ -217,7 +221,8 @@ class Message : AppCompatActivity() {
             .collection("messages")
             .add(messageMap)
             .addOnSuccessListener {
-                // Snapshot listener will handle UI update
+                // Scroll to the bottom of the RecyclerView
+                recyclerViewMessages.scrollToPosition(messagesList.size - 1)
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "Failed to send message: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -231,7 +236,7 @@ class Message : AppCompatActivity() {
                 val fileName = getFileNameFromUri(uri)
                 sendFileMessage(uri, fileName)
             } ?: run {
-                Toast.makeText(this, "No file selected", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -263,16 +268,11 @@ class Message : AppCompatActivity() {
             inputStream?.close()
 
             if (byteArray != null) {
-                if (byteArray.size > 1_048_576) {
-                    Toast.makeText(this, "File too large (max 1 MB)", Toast.LENGTH_SHORT).show()
-                    return
-                }
-
                 val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
 
                 val messageMap = hashMapOf(
                     "username" to currentUsernameGlobal,
-                    "content" to "File: ${fileName ?: "Unnamed file"}",
+                    "content" to "Image: ${fileName ?: "Unnamed image"}",
                     "fileData" to base64String,
                     "time" to formattedTime,
                     "timestamp" to timestamp
@@ -283,16 +283,16 @@ class Message : AppCompatActivity() {
                     .collection("messages")
                     .add(messageMap)
                     .addOnSuccessListener {
-                        Toast.makeText(this, "File message sent", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Image sent", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(this, "Failed to send file: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Failed to send image: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
             } else {
-                Toast.makeText(this, "Failed to read file", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Failed to read image", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Error reading file: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error reading image: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -364,7 +364,7 @@ class Message : AppCompatActivity() {
 
         val fileData = message.fileData ?: return
         val content = message.content
-        val fileName = content.removePrefix("File: ").trim()
+        val fileName = content.removePrefix("Image: ").trim()
 
         try {
             val fileBytes = Base64.decode(fileData, Base64.DEFAULT)
@@ -374,11 +374,7 @@ class Message : AppCompatActivity() {
             )
 
             if (!directory.exists()) {
-                val created = directory.mkdirs()
-                if (!created) {
-                    Toast.makeText(this, "Failed to create directory", Toast.LENGTH_SHORT).show()
-                    return
-                }
+                directory.mkdirs()
             }
 
             val file = File(directory, fileName)
@@ -387,27 +383,23 @@ class Message : AppCompatActivity() {
                 output.flush()
             }
 
-            if (file.exists() && file.length() > 0) {
-                Toast.makeText(this, "File downloaded to Pictures/SecretMessenger/$fileName", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Image downloaded to Pictures/SecretMessenger/$fileName", Toast.LENGTH_LONG).show()
 
-                val uri = FileProvider.getUriForFile(this, "com.app.secretmessenger.fileprovider", file)
-                val mimeType = contentResolver.getType(uri) ?: if (fileName.lowercase().endsWith(".pdf")) "application/pdf" else "*/*"
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, mimeType)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
+            val uri = FileProvider.getUriForFile(this, "com.app.secretmessenger.fileprovider", file)
+            val mimeType = contentResolver.getType(uri) ?: "image/*"
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
 
-                if (intent.resolveActivity(packageManager) != null) {
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this, "No app found to open this file", Toast.LENGTH_LONG).show()
-                }
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
             } else {
-                Toast.makeText(this, "File was not saved correctly", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "No app found to open this image", Toast.LENGTH_LONG).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Failed to download or open file: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to download or open image: ${e.message}", Toast.LENGTH_SHORT).show()
             e.printStackTrace()
         }
     }

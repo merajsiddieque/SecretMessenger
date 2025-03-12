@@ -40,7 +40,7 @@ class UsersHome : AppCompatActivity() {
 
         adapter = UsersAdapter(
             userList,
-            selectedUsers, // Pass the selectedUsers list
+            selectedUsers,
             onLongPress = { user ->
                 if (selectedUsers.contains(user)) {
                     selectedUsers.remove(user)
@@ -71,9 +71,9 @@ class UsersHome : AppCompatActivity() {
         btnSearch.setOnClickListener {
             val query = etSearch.text.toString().trim()
             if (query.isEmpty()) {
-                fetchCurrentUsernameAndShowFriends() // Show all friends if search query is empty
+                fetchCurrentUsernameAndShowFriends()
             } else {
-                searchUsers(query) // Search for users
+                searchUsers(query)
             }
         }
     }
@@ -100,7 +100,6 @@ class UsersHome : AppCompatActivity() {
                     Toast.makeText(this, "Current username not found.", Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
-
                 showFriends()
             }
             .addOnFailureListener { e ->
@@ -175,7 +174,7 @@ class UsersHome : AppCompatActivity() {
         return when (item.itemId) {
             R.id.menu_delete -> {
                 if (selectedUsers.isNotEmpty()) {
-                    for (user in selectedUsers.toList()) { // Use toList() to avoid concurrent modification
+                    for (user in selectedUsers.toList()) {
                         val conversationId = "$currentUsernameGlobal-${user.name}"
                         db.collection("Friends").document(conversationId)
                             .delete()
@@ -192,6 +191,14 @@ class UsersHome : AppCompatActivity() {
                 } else {
                     Toast.makeText(this, "No users selected.", Toast.LENGTH_SHORT).show()
                 }
+                true
+            }
+            R.id.menu_private_vault -> {
+                // Launch Private Vault Activity
+                val intent = Intent(this, PrivateVaultActivity::class.java).apply {
+                    putExtra("currentUsername", currentUsernameGlobal)
+                }
+                startActivity(intent)
                 true
             }
             R.id.menu_settings -> {

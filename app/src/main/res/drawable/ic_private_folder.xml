@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Folder Shape -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M10,4L4,4C2.9,4 2,4.9 2,6L2,18C2,19.1 2.9,20 4,20L20,20C21.1,20 22,19.1 22,18L22,8C22,6.9 21.1,6 20,6L12,6L10,4Z" />
+
+    <!-- Lock Body (Rounded Rectangle) -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M8,12 h8 v6 h-8 v-6 a1,1 0 0 1 1,-1 h6 a1,1 0 0 1 1,1 v4 a1,1 0 0 1 -1,1 h-6 a1,1 0 0 1 -1,-1 Z" />
+
+    <!-- Lock Shackle -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M10,12L10,10C10,8.9 10.9,8 12,8C13.1,8 14,8.9 14,10L14,12"
+        android:strokeColor="#388E3C"
+        android:strokeWidth="1.5" />
+</vector>
